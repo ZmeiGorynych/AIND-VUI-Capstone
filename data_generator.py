@@ -69,14 +69,28 @@ class AudioGenerator():
             raise Exception("Invalid partition. "
                 "Must be train/validation")
 
+
         features = [self.normalize(self.featurize(a)) for a in 
             audio_paths[cur_index:cur_index+self.minibatch_size]]
 
+        # normalize all clips to constant length - will that make the AttentionDecoder code work?
+        max_time_slices = self.max_duration * 1000 / self.step
+        const_len_features =[]
+        for f in features:
+            clf = np.zeros((int(max_time_slices), f.shape[1]))
+            clf[0:f.shape[0],:] = f
+            const_len_features.append(clf)
+
+        features = const_len_features
+        #print('******',features[0].shape)
         # calculate necessary sizes
         max_length = max([features[i].shape[0] 
             for i in range(0, self.minibatch_size)])
         max_string_length = max([len(texts[cur_index+i]) 
             for i in range(0, self.minibatch_size)])
+
+        if max_length>max_time_slices:
+            raise ValueError('Wrong estimate of ')
         
         # initialize the arrays
         X_data = np.zeros([self.minibatch_size, max_length, 
@@ -84,6 +98,7 @@ class AudioGenerator():
         labels = np.ones([self.minibatch_size, max_string_length]) * 28
         input_length = np.zeros([self.minibatch_size, 1])
         label_length = np.zeros([self.minibatch_size, 1])
+
         
         for i in range(0, self.minibatch_size):
             # calculate X_data & input_length
