@@ -14,7 +14,7 @@ def simple_rnn_model(input_dim, output_dim=29):
     """ Build a recurrent network for speech 
     """
     # Main acoustic input
-    input_data = Input(name='the_input', shape=(NUM_TIME_SLICES, input_dim))
+    input_data = Input(name='the_input', shape=(None, input_dim))
     # Add recurrent layer
     simp_rnn = GRU(output_dim, return_sequences=True, 
                  implementation=2, name='rnn')(input_data)
@@ -30,7 +30,7 @@ def rnn_model(input_dim, units, activation, output_dim=29):
     """ Build a recurrent network for speech 
     """
     # Main acoustic input
-    input_data = Input(name='the_input', shape=(NUM_TIME_SLICES, input_dim))
+    input_data = Input(name='the_input', shape=(None, input_dim))
     # Add recurrent layer
     simp_rnn = GRU(units, activation=activation,
         return_sequences=True, implementation=2, name='rnn')(input_data)
@@ -52,7 +52,7 @@ def cnn_rnn_model(input_dim, filters, kernel_size, conv_stride,
     """ Build a recurrent + convolutional network for speech 
     """
     # Main acoustic input
-    input_data = Input(name='the_input', shape=(NUM_TIME_SLICES, input_dim))
+    input_data = Input(name='the_input', shape=(None, input_dim))
     # Add convolutional layer
     conv_1d = Conv1D(filters, kernel_size, 
                      strides=conv_stride, 
@@ -103,7 +103,7 @@ def deep_rnn_model(input_dim, units, recur_layers, output_dim=29):
     """ Build a deep recurrent network for speech 
     """
     # Main acoustic input
-    input_data = Input(name='the_input', shape=(NUM_TIME_SLICES, input_dim))
+    input_data = Input(name='the_input', shape=(None, input_dim))
     # TODO: Add recurrent layers, each with batch normalization
     tmp = input_data
     for i in range(recur_layers):
@@ -127,7 +127,7 @@ def bidirectional_rnn_model(input_dim, units, output_dim=29):
     """ Build a bidirectional recurrent network for speech
     """
     # Main acoustic input
-    input_data = Input(name='the_input', shape=(NUM_TIME_SLICES, input_dim))
+    input_data = Input(name='the_input', shape=(None, input_dim))
     # TODO: Add bidirectional recurrent layer
     bi_rnn = Bidirectional(GRU(units, activation='relu',
         return_sequences=True, implementation=2))(input_data)
@@ -149,7 +149,7 @@ def cnn_deep_bidir_rnn_model(input_dim, filters, kernel_size, conv_stride,
     """ Build a recurrent + convolutional network for speech
     """
     # Main acoustic input
-    input_data = Input(name='the_input', shape=(NUM_TIME_SLICES, input_dim))
+    input_data = Input(name='the_input', shape=(None, input_dim))
     # Add convolutional layer
     conv_1d = Conv1D(filters, kernel_size,
                      strides=conv_stride,
@@ -174,7 +174,7 @@ def cnn_deep_bidir_rnn_model(input_dim, filters, kernel_size, conv_stride,
     print(model.summary())
     return model
 
-def simple_model(input_dim, units, output_dim=29):
+def simple_decoder_model(input_dim, units, output_dim=29):
 
     input_data = Input(name='the_input', shape=(NUM_TIME_SLICES, input_dim))
     rnn = GRU(units, return_sequences=True, implementation=2)(input_data)
@@ -190,7 +190,7 @@ def cnn_deep_bidir_rnn_attention_model_old(input_dim, filters, kernel_size, conv
     """ Build a recurrent + convolutional network for speech
     """
     # Main acoustic input
-    input_data = Input(name='the_input', shape=(None, input_dim))
+    input_data = Input(name='the_input', shape=(NUM_TIME_SLICES, input_dim))
     # Add convolutional layer
     conv_1d = Conv1D(filters, kernel_size,
                      strides=conv_stride,

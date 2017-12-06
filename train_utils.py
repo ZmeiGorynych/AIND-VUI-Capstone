@@ -41,12 +41,13 @@ def train_model(input_to_softmax,
                 epochs=20,
                 verbose=1,
                 sort_by_duration=False,
-                max_duration=10.0):
+                max_duration=10.0,
+                pad_sequences=False):
     
     # create a class instance for obtaining batches of data
     audio_gen = AudioGenerator(minibatch_size=minibatch_size, 
         spectrogram=spectrogram, mfcc_dim=mfcc_dim, max_duration=max_duration,
-        sort_by_duration=sort_by_duration)
+        sort_by_duration=sort_by_duration, pad_sequences = pad_sequences)
     # add the training data to the generator
     audio_gen.load_train_data(train_json)
     audio_gen.load_validation_data(valid_json)

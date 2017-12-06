@@ -20,7 +20,7 @@ RNG_SEED = 123
 class AudioGenerator():
     def __init__(self, step=10, window=20, max_freq=8000, mfcc_dim=13,
         minibatch_size=20, desc_file=None, spectrogram=True, max_duration=10.0, 
-        sort_by_duration=False):
+        sort_by_duration=False, pad_sequences = False):
         """
         Params:
             step (int): Step size in milliseconds between windows (for spectrogram ONLY)
@@ -49,6 +49,7 @@ class AudioGenerator():
         self.minibatch_size = minibatch_size
         self.spectrogram = spectrogram
         self.sort_by_duration = sort_by_duration
+        self.pad_sequences = pad_sequences
 
     def get_batch(self, partition):
         """ Obtain a batch of train, validation, or test data
@@ -73,15 +74,17 @@ class AudioGenerator():
         features = [self.normalize(self.featurize(a)) for a in 
             audio_paths[cur_index:cur_index+self.minibatch_size]]
 
-        # normalize all clips to constant length - will that make the AttentionDecoder code work?
         max_time_slices = self.max_duration * 1000 / self.step
-        const_len_features =[]
-        for f in features:
-            clf = np.zeros((int(max_time_slices), f.shape[1]))
-            clf[0:f.shape[0],:] = f
-            const_len_features.append(clf)
+        if self.pad_sequences:
+            # normalize all clips to constant length - will that make the AttentionDecoder code work?
 
-        features = const_len_features
+            const_len_features =[]
+            for f in features:
+                clf = np.zeros((int(max_time_slices), f.shape[1]))
+                clf[0:f.shape[0],:] = f
+                const_len_features.append(clf)
+
+            features = const_len_features
         #print('******',features[0].shape)
         # calculate necessary sizes
         max_length = max([features[i].shape[0] 
