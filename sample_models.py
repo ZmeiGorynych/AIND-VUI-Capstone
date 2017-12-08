@@ -185,7 +185,7 @@ def simple_decoder_model(input_dim, units, output_dim=29):
     print(model.summary())
     return model
 
-def cnn_deep_bidir_rnn_attention_model_old(input_dim, filters, kernel_size, conv_stride,
+def cnn_deep_bidir_rnn_attention_model(input_dim, filters, kernel_size, conv_stride,
     conv_border_mode, units, bidir_layers, output_dim=29):
     """ Build a recurrent + convolutional network for speech
     """
