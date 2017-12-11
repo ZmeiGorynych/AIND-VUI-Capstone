@@ -145,7 +145,7 @@ def bidirectional_rnn_model(input_dim, units, output_dim=29):
     return model
 
 def cnn_deep_bidir_rnn_model(input_dim, filters, kernel_size, conv_stride,
-    conv_border_mode, units, bidir_layers, output_dim=29,drop_rate=0):
+    conv_border_mode, units, bidir_layers, output_dim=29):
     """ Build a recurrent + convolutional network for speech
     """
     # Main acoustic input
@@ -156,15 +156,13 @@ def cnn_deep_bidir_rnn_model(input_dim, filters, kernel_size, conv_stride,
                      padding=conv_border_mode,
                      activation='relu',
                      name='conv1d')(input_data)
-    tmp = Dropout(drop_rate)(conv_1d)
     # Add batch normalization
-    tmp = BatchNormalization(name='bn_conv_1d')(tmp)
+    tmp = BatchNormalization(name='bn_conv_1d')(conv_1d)
     # Add a recurrent layer
     for _ in range(bidir_layers):
         bi_rnn = Bidirectional(GRU(units, activation='relu',
             return_sequences=True, implementation=2))(tmp)
-        drop = Dropout(drop_rate)(bi_rnn)
-        tmp = BatchNormalization()(drop)
+        tmp = BatchNormalization()(bi_rnn)
     # TODO: Add a TimeDistributed(Dense(output_dim)) layer
     time_dense = TimeDistributed(Dense(output_dim))(tmp)
     # Add softmax activation layer
@@ -224,13 +222,81 @@ def cnn_deep_bidir_rnn_attention_model(input_dim, filters, kernel_size, conv_str
     print(model.summary())
     return model
 
+def cnn_deep_bidir_rnn_attention_model(input_dim, filters, kernel_size, conv_stride,
+    conv_border_mode, units, bidir_layers, output_dim=29):
+    """ Build a recurrent + convolutional network for speech
+    """
+    # Main acoustic input
+    input_data = Input(name='the_input', shape=(NUM_TIME_SLICES, input_dim))
+    # Add convolutional layer
+    conv_1d = Conv1D(filters, kernel_size,
+                     strides=conv_stride,
+                     padding=conv_border_mode,
+                     activation='relu',
+                     name='conv1d')(input_data)
+    # Add batch normalization
+    tmp = BatchNormalization(name='bn_conv_1d')(conv_1d)
+    # Add a recurrent layer
+    for _ in range(bidir_layers):
+        bi_rnn = Bidirectional(
+                    GRU(units, activation='relu',
+                        return_sequences=True, implementation=2),
+                    merge_mode='concat')(tmp)
+        tmp = BatchNormalization()(bi_rnn)
+
+    # Bidirectional(LSTM(encoder_units, return_sequences=True),
+    #               name='bidirectional_1',
+    #               merge_mode='concat',
+    #               trainable=trainable
+    # TODO: Add a TimeDistributed(Dense(output_dim)) layer
+    decoded = AttentionDecoder(units,output_dim)(tmp)
+    # Add softmax activation layer
+    y_pred = Activation('softmax', name='softmax')(decoded)
+    # Specify the model
+    model = Model(inputs=input_data, outputs=y_pred)
+    model.output_length = lambda x: cnn_output_length(
+        x, kernel_size, conv_border_mode, conv_stride)
+    print(model.summary())
+    return model
+
+def cnn_deep_bidir_rnn_dropout_model(input_dim, filters, kernel_size, conv_stride,
+    conv_border_mode, units, bidir_layers, output_dim=29,drop_rate=0):
+    """ Build a recurrent + convolutional network for speech
+    """
+    # Main acoustic input
+    input_data = Input(name='the_input', shape=(None, input_dim))
+    # Add convolutional layer
+    conv_1d = Conv1D(filters, kernel_size,
+                     strides=conv_stride,
+                     padding=conv_border_mode,
+                     activation='relu',
+                     name='conv1d')(input_data)
+    tmp = Dropout(drop_rate)(conv_1d)
+    # Add batch normalization
+    tmp = BatchNormalization(name='bn_conv_1d')(tmp)
+    # Add a recurrent layer
+    for _ in range(bidir_layers):
+        bi_rnn = Bidirectional(GRU(units, activation='relu',
+            return_sequences=True, implementation=2))(tmp)
+        drop = Dropout(drop_rate)(bi_rnn)
+        tmp = BatchNormalization()(drop)
+    # TODO: Add a TimeDistributed(Dense(output_dim)) layer
+    time_dense = TimeDistributed(Dense(output_dim))(tmp)
+    # Add softmax activation layer
+    y_pred = Activation('softmax', name='softmax')(time_dense)
+    # Specify the model
+    model = Model(inputs=input_data, outputs=y_pred)
+    model.output_length = lambda x: cnn_output_length(
+        x, kernel_size, conv_border_mode, conv_stride)
+    print(model.summary())
+    return model
+
 def final_model(input_dim):
     """ Build a deep network for speech
-    Why cut-and-paste cnn_deep_bidir_rnn_model() when I can call it?
-    Note that this uses a nonzero drop_rate where all the earlier runs
-    didn't use dropout
     """
-    return cnn_deep_bidir_rnn_model(input_dim,
+    # note that cnn_deep_bidir_rnn_dropout_model is used here for the first time,
+    # as per the rubric
+    return cnn_deep_bidir_rnn_dropout_model(input_dim,
                              filters=200,
                              kernel_size=11,
                              conv_stride=2,
