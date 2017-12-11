@@ -227,6 +227,8 @@ def cnn_deep_bidir_rnn_attention_model(input_dim, filters, kernel_size, conv_str
 def final_model(input_dim):
     """ Build a deep network for speech
     Why cut-and-paste cnn_deep_bidir_rnn_model() when I can call it?
+    Note that this uses a nonzero drop_rate where all the earlier runs
+    didn't use dropout
     """
     return cnn_deep_bidir_rnn_model(input_dim,
                              filters=200,
