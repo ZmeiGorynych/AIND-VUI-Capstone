@@ -163,8 +163,8 @@ def cnn_deep_bidir_rnn_model(input_dim, filters, kernel_size, conv_stride,
     for _ in range(bidir_layers):
         bi_rnn = Bidirectional(GRU(units, activation='relu',
             return_sequences=True, implementation=2))(tmp)
-        tmp = Dropout(drop_rate)(tmp)
-        tmp = BatchNormalization()(bi_rnn)
+        drop = Dropout(drop_rate)(bi_rnn)
+        tmp = BatchNormalization()(drop)
     # TODO: Add a TimeDistributed(Dense(output_dim)) layer
     time_dense = TimeDistributed(Dense(output_dim))(tmp)
     # Add softmax activation layer
