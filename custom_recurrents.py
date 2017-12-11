@@ -1,3 +1,4 @@
+# from https://github.com/datalogue/keras-attention/blob/master/models/custom_recurrents.py
 import tensorflow as tf
 from keras import backend as K
 from keras import regularizers, constraints, initializers, activations
