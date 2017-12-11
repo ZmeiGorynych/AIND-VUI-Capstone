@@ -1,7 +1,7 @@
 from keras import backend as K
 from keras.models import Model
 from keras.layers import (BatchNormalization, Conv1D, Dense, Input, 
-    TimeDistributed, Activation, Bidirectional, SimpleRNN, GRU, LSTM)
+    TimeDistributed, Activation, Bidirectional, SimpleRNN, GRU, LSTM, Dropout)
 
 
 # A Keras decoder with attention from
@@ -145,7 +145,7 @@ def bidirectional_rnn_model(input_dim, units, output_dim=29):
     return model
 
 def cnn_deep_bidir_rnn_model(input_dim, filters, kernel_size, conv_stride,
-    conv_border_mode, units, bidir_layers, output_dim=29):
+    conv_border_mode, units, bidir_layers, output_dim=29,drop_rate=0):
     """ Build a recurrent + convolutional network for speech
     """
     # Main acoustic input
@@ -156,12 +156,14 @@ def cnn_deep_bidir_rnn_model(input_dim, filters, kernel_size, conv_stride,
                      padding=conv_border_mode,
                      activation='relu',
                      name='conv1d')(input_data)
+    tmp = Dropout(drop_rate)(conv_1d)
     # Add batch normalization
-    tmp = BatchNormalization(name='bn_conv_1d')(conv_1d)
+    tmp = BatchNormalization(name='bn_conv_1d')(tmp)
     # Add a recurrent layer
     for _ in range(bidir_layers):
         bi_rnn = Bidirectional(GRU(units, activation='relu',
             return_sequences=True, implementation=2))(tmp)
+        tmp = Dropout(drop_rate)(tmp)
         tmp = BatchNormalization()(bi_rnn)
     # TODO: Add a TimeDistributed(Dense(output_dim)) layer
     time_dense = TimeDistributed(Dense(output_dim))(tmp)
@@ -240,4 +242,4 @@ def cnn_deep_bidir_rnn_attention_model(input_dim, filters, kernel_size, conv_str
 
 if __name__=='__main__':
     spectrogram = True
-    model_5 = simple_model(input_dim=161,units=200,output_dim=29)
+    #model_5 = simple_model(input_dim=161,units=200,output_dim=29)
