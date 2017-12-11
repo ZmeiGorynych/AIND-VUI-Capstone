@@ -224,21 +224,19 @@ def cnn_deep_bidir_rnn_attention_model(input_dim, filters, kernel_size, conv_str
     print(model.summary())
     return model
 
-# def final_model():
-#     """ Build a deep network for speech
-#     """
-#     # Main acoustic input
-#     input_data = Input(name='the_input', shape=(None, input_dim))
-#     # TODO: Specify the layers in your network
-#     ...
-#     # TODO: Add softmax activation layer
-#     y_pred = ...
-#     # Specify the model
-#     model = Model(inputs=input_data, outputs=y_pred)
-#     # TODO: Specify model.output_length
-#     model.output_length = ...
-#     print(model.summary())
-#     return model
+def final_model(input_dim):
+    """ Build a deep network for speech
+    Why cut-and-paste cnn_deep_bidir_rnn_model() when I can call it?
+    """
+    return cnn_deep_bidir_rnn_model(input_dim,
+                             filters=200,
+                             kernel_size=11,
+                             conv_stride=2,
+                             conv_border_mode='valid',
+                             units=200,
+                             bidir_layers=3,
+                             output_dim=29,
+                            drop_rate=0.1)
 
 if __name__=='__main__':
     spectrogram = True
