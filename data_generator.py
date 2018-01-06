@@ -2,7 +2,7 @@
 Defines a class that is used to featurize audio clips, and provide
 them to the network for training or testing.
 """
-
+import os, inspect, glob
 import json
 import numpy as np
 import random
@@ -16,6 +16,7 @@ from utils import calc_feat_dim, spectrogram_from_file, text_to_int_sequence
 from utils import conv_output_length
 
 RNG_SEED = 123
+my_location = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 class AudioGenerator():
     def __init__(self, step=10, window=20, max_freq=8000, mfcc_dim=13,
@@ -181,18 +182,18 @@ class AudioGenerator():
                 self.cur_test_index = 0
             yield ret
 
-    def load_train_data(self, desc_file='train_corpus.json'):
+    def load_train_data(self, desc_file=my_location+'/train_corpus.json'):
         self.load_metadata_from_desc_file(desc_file, 'train')
         self.fit_train()
         if self.sort_by_duration:
             self.sort_data_by_duration('train')
 
-    def load_validation_data(self, desc_file='valid_corpus.json'):
+    def load_validation_data(self, desc_file=my_location+'/valid_corpus.json'):
         self.load_metadata_from_desc_file(desc_file, 'validation')
         if self.sort_by_duration:
             self.sort_data_by_duration('valid')
 
-    def load_test_data(self, desc_file='test_corpus.json'):
+    def load_test_data(self, desc_file=my_location+'/test_corpus.json'):
         self.load_metadata_from_desc_file(desc_file, 'test')
     
     def load_metadata_from_desc_file(self, desc_file, partition):
@@ -252,13 +253,18 @@ class AudioGenerator():
         Params:
             audio_clip (str): Path to the audio clip
         """
+        cwd = os.getcwd()
+        os.chdir(my_location)
         if self.spectrogram:
-            return spectrogram_from_file(
+            out = spectrogram_from_file(
                 audio_clip, step=self.step, window=self.window,
                 max_freq=self.max_freq)
         else:
             (rate, sig) = wav.read(audio_clip)
-            return mfcc(sig, rate, numcep=self.mfcc_dim)
+            out = mfcc(sig, rate, numcep=self.mfcc_dim)
+        os.chdir(cwd)
+        return out
+
 
     def normalize(self, feature, eps=1e-14):
         """ Center a feature using the mean and std
@@ -298,9 +304,11 @@ def vis_train_features(index=0):
     """ Visualizing the data point in the training set at the supplied index
     """
     # obtain spectrogram
+    cwd = os.getcwd()
+    os.chdir(my_location)
     audio_gen = AudioGenerator(spectrogram=True)
     audio_gen.load_train_data()
-    vis_audio_path = audio_gen.train_audio_paths[index]
+    vis_audio_path =audio_gen.train_audio_paths[index]
     vis_spectrogram_feature = audio_gen.normalize(audio_gen.featurize(vis_audio_path))
     # obtain mfcc
     audio_gen = AudioGenerator(spectrogram=False)
@@ -313,7 +321,8 @@ def vis_train_features(index=0):
     # print total number of training examples
     print('There are %d total training examples.' % len(audio_gen.train_audio_paths))
     # return labels for plotting
-    return vis_text, vis_raw_audio, vis_mfcc_feature, vis_spectrogram_feature, vis_audio_path
+    os.chdir(cwd)
+    return vis_text, vis_raw_audio, vis_mfcc_feature, vis_spectrogram_feature, my_location +'/'+vis_audio_path
 
 
 def plot_raw_audio(vis_raw_audio):
