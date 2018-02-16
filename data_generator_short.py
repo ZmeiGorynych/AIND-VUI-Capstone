@@ -191,6 +191,9 @@ class AudioGenerator2():
         feats = np.vstack(feats)
         self.feats_mean = np.mean(feats, axis=0)
         self.feats_std = np.std(feats, axis=0)
+
+    def norm_params(self):
+        return self.feats_mean, self.feats_std
         
     def featurize(self, audio_clip):
         """ For a given audio clip, calculate the corresponding feature
@@ -251,12 +254,13 @@ def vis_features(index=0):
     cwd = os.getcwd()
     os.chdir(my_location)
     audio_gen = AudioGenerator2(spectrogram=True)
-    audio_gen.load_data()
+    audio_gen.load_data(fit_params=True)
     vis_audio_path =audio_gen.audio_paths[index]
     vis_spectrogram_feature = audio_gen.normalize(audio_gen.featurize(vis_audio_path))
     # obtain mfcc
+
     audio_gen = AudioGenerator2(spectrogram=False)
-    audio_gen.load_data()
+    audio_gen.load_data(fit_params=True)
     vis_mfcc_feature = audio_gen.normalize(audio_gen.featurize(vis_audio_path))
     # obtain text label
     vis_text = audio_gen.texts[index]
