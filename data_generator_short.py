@@ -252,18 +252,18 @@ def vis_features(index=0):
     os.chdir(my_location)
     audio_gen = AudioGenerator2(spectrogram=True)
     audio_gen.load_data()
-    vis_audio_path =audio_gen.train_audio_paths[index]
+    vis_audio_path =audio_gen.audio_paths[index]
     vis_spectrogram_feature = audio_gen.normalize(audio_gen.featurize(vis_audio_path))
     # obtain mfcc
     audio_gen = AudioGenerator2(spectrogram=False)
     audio_gen.load_data()
     vis_mfcc_feature = audio_gen.normalize(audio_gen.featurize(vis_audio_path))
     # obtain text label
-    vis_text = audio_gen.train_texts[index]
+    vis_text = audio_gen.texts[index]
     # obtain raw audio
     vis_raw_audio, _ = librosa.load(vis_audio_path)
     # print total number of training examples
-    print('There are %d total training examples.' % len(audio_gen.train_audio_paths))
+    print('There are %d total training examples.' % len(audio_gen.audio_paths))
     # return labels for plotting
     os.chdir(cwd)
     return vis_text, vis_raw_audio, vis_mfcc_feature, vis_spectrogram_feature, my_location +'/'+vis_audio_path
